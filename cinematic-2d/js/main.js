@@ -52,6 +52,8 @@
       replayScene: (sceneId, returnView) => startSceneReplay(sceneId, returnView),
       replayEnding: (endingId, returnView) => {
         closeDialog(document.getElementById("gallery-panel"));
+        hideTitleScreen();
+        gameMenuBtn.classList.add("is-visible");
         triggerEnding(endingId, { replay: true, returnView });
       },
       replayGame: (gameId, returnView) => {
