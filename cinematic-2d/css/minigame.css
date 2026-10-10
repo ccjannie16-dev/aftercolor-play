@@ -1,0 +1,574 @@
+/* AFTERCOLOR — Cinematic 2D — Mini-game overlay shell */
+
+.mg-shell {
+  background: rgba(18, 22, 21, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  padding: 28px;
+  max-width: 720px;
+  width: 90vw;
+  max-height: 78vh;
+  overflow-y: auto;
+  position: relative;
+  color: rgba(250, 248, 241, 0.92);
+  font: 15px/1.5 system-ui, sans-serif;
+}
+
+.mg-shell h2 {
+  font-size: clamp(16px, 1.8vw, 22px);
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  margin-bottom: 20px;
+  color: rgba(246, 241, 230, 0.94);
+}
+
+.mg-shell p {
+  font-size: 14px;
+  line-height: 1.6;
+  color: rgba(200, 195, 185, 0.85);
+  margin-bottom: 12px;
+}
+
+/* ── Abby's Bedroom Console ─────────────────────────── */
+
+.bedroom-console-shell {
+  width: min(560px, 86vw);
+  padding: clamp(18px, 4vw, 30px);
+  border: 1px solid rgba(159, 199, 216, 0.24);
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(20, 28, 30, 0.97), rgba(12, 17, 18, 0.98));
+  color: rgba(246, 241, 230, 0.94);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.38);
+}
+
+.bedroom-console-shell h2 {
+  margin: 0 0 8px;
+  color: rgba(185, 218, 228, 0.94);
+  font-size: clamp(18px, 2.3vw, 26px);
+  font-weight: 400;
+  letter-spacing: 0.16em;
+}
+
+.bedroom-console-shell > p {
+  margin: 0 0 18px;
+  color: rgba(211, 208, 198, 0.76);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.bedroom-console-menu {
+  display: grid;
+  gap: 10px;
+}
+
+.bedroom-console-menu button {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 4px 14px;
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  background: rgba(31, 39, 40, 0.86);
+  color: rgba(248, 245, 237, 0.92);
+  text-align: left;
+  cursor: pointer;
+}
+
+.bedroom-console-menu button:hover,
+.bedroom-console-menu button:focus-visible {
+  border-color: rgba(159, 199, 216, 0.62);
+  background: rgba(42, 53, 55, 0.94);
+  outline: 2px solid rgba(159, 199, 216, 0.82);
+  outline-offset: 2px;
+}
+
+.bedroom-console-menu strong,
+.bedroom-console-menu span { grid-column: 1; }
+.bedroom-console-menu span { color: rgba(211, 208, 198, 0.72); font-size: 12px; }
+.bedroom-console-menu em { grid-column: 2; grid-row: 1 / span 2; align-self: center; color: rgba(159, 199, 216, 0.82); font-size: 11px; font-style: normal; }
+
+@media (max-width: 520px) {
+  .bedroom-console-shell { width: 84vw; padding: 12px 14px; }
+  .bedroom-console-shell h2 { margin-bottom: 4px; font-size: 15px; }
+  .bedroom-console-shell > p { margin-bottom: 8px; font-size: 10px; line-height: 1.3; }
+  .bedroom-console-menu { gap: 6px; }
+  .bedroom-console-menu button { padding: 7px 9px; }
+  .bedroom-console-menu span { font-size: 9px; }
+  .bedroom-console-menu em { font-size: 9px; }
+}
+
+/* ── Jigsaw ───────────────────────────────────────────── */
+
+.jigsaw-instruction {
+  font-size: 12.5px;
+  color: rgba(180, 175, 165, 0.7);
+  margin-top: -6px;
+}
+
+.jigsaw-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.jigsaw-ref-btn,
+.jigsaw-hint-btn,
+.jigsaw-reset-btn {
+  padding: 6px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 6px;
+  background: rgba(30, 35, 34, 0.85);
+  color: rgba(248, 245, 237, 0.9);
+  font: 500 12.5px/1 system-ui, sans-serif;
+  cursor: pointer;
+}
+
+.jigsaw-ref-btn:hover,
+.jigsaw-hint-btn:hover,
+.jigsaw-reset-btn:hover { background: rgba(45, 52, 50, 0.95); }
+.jigsaw-ref-btn[aria-pressed="true"] { border-color: rgba(159, 199, 216, 0.7); color: rgba(159, 199, 216, 0.95); }
+
+.jigsaw-progress {
+  margin-left: auto;
+  color: rgba(220, 218, 210, 0.8);
+  font: 600 12.5px/1 system-ui, sans-serif;
+}
+
+.jigsaw-progress.is-complete { color: #a9d9c6; }
+
+.jigsaw-reference-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #0a0d0e;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 40;
+  transition: opacity 150ms ease;
+}
+
+.jigsaw-reference-overlay.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+#jigsaw-container {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  background: rgba(10, 13, 13, 0.8);
+  border-radius: 8px;
+  overflow: hidden;
+  touch-action: none;
+}
+
+.jigsaw-target {
+  position: absolute;
+  z-index: 0;
+  background: rgba(151, 176, 183, 0.055);
+  filter: drop-shadow(0 0 1px rgba(205, 226, 232, 0.48));
+  transition: background 160ms ease, filter 160ms ease;
+  pointer-events: none;
+}
+
+.jigsaw-target.is-hinted {
+  background: rgba(141, 205, 225, 0.23);
+  filter: drop-shadow(0 0 5px rgba(156, 221, 240, 0.92));
+}
+
+.jigsaw-target.is-filled { opacity: 0; }
+
+.jigsaw-piece {
+  position: absolute;
+  padding: 0;
+  border: 0;
+  background-color: transparent;
+  cursor: grab;
+  touch-action: none;
+  transition: filter 120ms ease, box-shadow 120ms ease;
+}
+
+.jigsaw-piece:active { cursor: grabbing; }
+
+.jigsaw-piece.is-placed {
+  cursor: default;
+  pointer-events: none;
+  filter: none;
+}
+
+.jigsaw-piece.is-dragging {
+  z-index: 50;
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.5));
+}
+
+.jigsaw-piece.is-hinted {
+  filter: drop-shadow(0 0 8px rgba(156, 221, 240, 0.95));
+}
+
+.jigsaw-tray {
+  display: none;
+}
+
+.jigsaw-caption {
+  margin-top: 10px;
+  font-size: 13px;
+  color: rgba(180, 175, 165, 0.7);
+  text-align: center;
+  font-style: italic;
+}
+
+@media (max-width: 640px) {
+  .jigsaw-toolbar { flex-wrap: wrap; }
+  .jigsaw-progress { width: 100%; margin-left: 0; text-align: right; }
+}
+
+/* ── Care Triads ─────────────────────────────────────── */
+
+#triads-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.triads-column {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.triads-column h3 {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(159, 199, 216, 0.8);
+  margin-bottom: 6px;
+  text-align: center;
+}
+
+.triad-card {
+  padding: 10px 12px;
+  background: rgba(30, 35, 34, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  font-size: 13px;
+  color: rgba(240, 235, 225, 0.85);
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease, transform 200ms ease;
+  text-align: center;
+  line-height: 1.4;
+  touch-action: none;
+}
+
+.triad-card:hover,
+.triad-card:focus {
+  background: rgba(45, 52, 50, 0.9);
+  border-color: rgba(255, 255, 255, 0.18);
+  outline: none;
+}
+
+.triad-card.is-selected {
+  border-color: rgba(159, 199, 216, 0.6);
+  background: rgba(40, 55, 60, 0.9);
+}
+
+.triad-card.is-matched {
+  border-color: rgba(120, 180, 120, 0.5);
+  background: rgba(30, 50, 35, 0.85);
+  cursor: default;
+  color: rgba(160, 210, 160, 0.9);
+}
+
+.triad-card.is-wrong {
+  animation: triadDrift 400ms ease forwards;
+}
+
+@keyframes triadDrift {
+  0% { transform: translateX(0); }
+  25% { transform: translateX(8px); }
+  75% { transform: translateX(-6px); }
+  100% { transform: translateX(0); opacity: 0.6; }
+}
+
+.triads-instruction {
+  font-size: 13px;
+  color: rgba(180, 175, 165, 0.75);
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+/* ── Cooking (full port: memory card, ingredient shelf w/ decoys,
+   ordered wok actions, heat-timing check, tiered result) ──────── */
+
+#cooking-container { display: flex; flex-direction: column; }
+.cooking-root { display: flex; flex-direction: column; gap: 14px; }
+.cooking-eyebrow {
+  display: block;
+  font-size: 11px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: rgba(159, 199, 216, .8);
+  margin-bottom: 4px;
+}
+.cooking-root h2 { font-size: 17px; font-weight: 400; margin: 0 0 4px; color: rgba(246,241,230,.95); }
+.cooking-root > p { font-size: 13px; color: rgba(200,195,185,.8); margin: 0 0 6px; }
+
+/* Menu */
+.cooking-menu-intro { margin-bottom: 10px; }
+.cooking-recommended, .cooking-menu-card {
+  display: block; width: 100%; text-align: left; padding: 10px 14px;
+  border: 1px solid rgba(255,255,255,.1); border-radius: 8px;
+  background: rgba(30,35,34,.7); color: rgba(240,235,225,.9); cursor: pointer;
+  margin-bottom: 8px; font: inherit;
+}
+.cooking-recommended span, .cooking-menu-card small { display: block; font-size: 11px; color: rgba(159,199,216,.85); }
+.cooking-menu-card.is-complete { border-color: rgba(120,175,120,.4); }
+.cooking-menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 8px; }
+.cooking-menu-icon { font-size: 22px; margin-right: 6px; }
+
+/* Memory card */
+.cooking-card-shell { perspective: 1200px; width: 100%; max-width: 260px; }
+.cooking-card-shell.is-compact { max-width: 220px; }
+.cooking-memory-card {
+  width: 100%; min-height: 260px; border: 0; background: transparent; cursor: pointer; padding: 0;
+}
+.cooking-card-inner {
+  position: relative; width: 100%; height: 100%; min-height: 260px;
+  transition: transform 500ms; transform-style: preserve-3d;
+}
+.cooking-memory-card.is-face-down .cooking-card-inner { transform: rotateY(180deg); }
+.cooking-card-front, .cooking-card-back {
+  position: absolute; inset: 0; backface-visibility: hidden;
+  border-radius: 10px; padding: 14px; text-align: left;
+  background: rgba(25,30,29,.85); border: 1px solid rgba(255,255,255,.08);
+  overflow-y: auto;
+}
+.cooking-card-back {
+  transform: rotateY(180deg); display: flex; flex-direction: column; align-items: center;
+  justify-content: center; text-align: center; gap: 4px;
+}
+.cooking-card-back span:first-child { font-size: 2.4rem; }
+.cooking-card-kicker { display: block; font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: rgba(159,199,216,.8); margin-bottom: 4px; }
+.cooking-card-front > b { display: block; font-size: 15px; margin-bottom: 8px; color: rgba(246,241,230,.95); }
+.cooking-note-copy { display: grid; gap: 8px; }
+.cooking-note-copy i { font-size: 12px; line-height: 1.5; color: rgba(200,195,185,.85); font-style: italic; }
+
+/* Workspace */
+.cooking-workspace-top { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 10px; }
+.cooking-workspace-top > span { font-size: 12px; color: rgba(180,175,165,.75); }
+.cooking-puzzle-grid { display: grid; grid-template-columns: minmax(200px, 260px) 1fr; gap: 16px; }
+@media (max-width: 640px) { .cooking-puzzle-grid { grid-template-columns: 1fr; } }
+.cooking-prompt { font-size: 13px; color: rgba(200,195,185,.85); margin: 0 0 10px; }
+
+/* Ingredient shelf */
+.cooking-shelf { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px,1fr)); gap: 8px; }
+.cooking-ingredient {
+  position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 10px 6px; border-radius: 8px; border: 1px solid rgba(255,255,255,.08);
+  background: rgba(30,35,34,.7); color: rgba(240,235,225,.9); cursor: pointer; font: inherit;
+}
+.cooking-ingredient > span { font-size: 20px; }
+.cooking-ingredient > b { font-size: 10px; text-align: center; line-height: 1.2; }
+.cooking-ingredient > em { font-size: 9px; color: #d68a83; font-style: normal; }
+.cooking-ingredient > i { position: absolute; top: 3px; right: 5px; color: rgba(120,175,120,.9); font-style: normal; }
+.cooking-ingredient.is-picked { border-color: rgba(120,175,120,.4); opacity: .55; }
+.cooking-ingredient.is-wrong { animation: triadDrift 400ms ease; }
+.cooking-ingredient:hover:not(:disabled) { background: rgba(40,46,44,.9); }
+
+/* Cook sequence */
+.cooking-cook-layout { display: flex; flex-direction: column; gap: 12px; }
+.cooking-action-arc { display: flex; flex-wrap: wrap; gap: 8px; }
+.cooking-order-action {
+  display: flex; align-items: center; gap: 8px; padding: 8px 12px;
+  border: 1px solid rgba(255,255,255,.08); border-radius: 8px;
+  background: rgba(30,35,34,.7); color: rgba(240,235,225,.9); cursor: pointer; font: inherit; font-size: 13px;
+}
+.cooking-order-action.is-used { opacity: .35; cursor: default; }
+.cooking-order-action:hover:not(:disabled) { background: rgba(40,46,44,.9); }
+.cooking-station { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.cooking-stove { position: relative; width: 96px; height: 96px; }
+.cooking-flame { position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%); display: flex; gap: 4px; }
+.cooking-flame i { width: 6px; height: 16px; background: #e8935a; border-radius: 50% 50% 20% 20%; filter: blur(1px); animation: flameFlicker 900ms ease-in-out infinite alternate; }
+.cooking-flame i:nth-child(2) { animation-delay: 150ms; }
+.cooking-flame i:nth-child(3) { animation-delay: 300ms; }
+@keyframes flameFlicker { from { transform: scaleY(.8); } to { transform: scaleY(1.15); } }
+.cooking-wok { width: 96px; height: 56px; border-radius: 0 0 48px 48px; background: rgba(60,55,50,.9); border: 2px solid rgba(200,195,185,.3); transition: background 300ms ease; }
+.cooking-wok.is-oiled { background: rgba(90,80,55,.9); }
+.cooking-wok.is-yellow { background: #c9a13b; }
+.cooking-wok.is-red { background: #b1503d; }
+.cooking-wok.is-cooking { box-shadow: inset 0 0 12px rgba(255,180,100,.4); }
+.cooking-sequence-strip { display: flex; gap: 4px; font-size: 16px; min-height: 20px; }
+
+/* Heat gauge */
+.cooking-heat-panel { text-align: center; }
+.cooking-heat-icon { font-size: 28px; }
+.cooking-heat-gauge { position: relative; height: 14px; border-radius: 7px; background: rgba(255,255,255,.08); margin: 14px 0; overflow: visible; }
+.cooking-heat-zone { position: absolute; left: 35%; width: 30%; top: 0; bottom: 0; background: rgba(120,175,120,.45); border-radius: 4px; }
+.cooking-heat-marker { position: absolute; top: -4px; width: 4px; height: 22px; background: #f2ede0; border-radius: 2px; left: 10%; }
+.cooking-heat-labels { display: flex; justify-content: space-between; font-size: 11px; color: rgba(180,175,165,.6); margin-bottom: 10px; }
+
+/* Status log */
+.cooking-status { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border-radius: 8px; background: rgba(20,24,23,.7); margin-top: 10px; }
+.cooking-status b { display: block; font-size: 10px; letter-spacing: .08em; color: rgba(159,199,216,.8); margin-bottom: 3px; }
+.cooking-status p { margin: 0; font-size: 13px; color: rgba(230,226,216,.9); }
+.cooking-status p.is-warning { color: #d68a83; }
+.cooking-status p.is-confirmed { color: #8fc98f; }
+.cooking-bibo-light { width: 8px; height: 8px; border-radius: 50%; background: #6ec6e8; box-shadow: 0 0 6px 2px rgba(110,198,232,.5); flex-shrink: 0; margin-top: 4px; }
+
+/* Result */
+.cooking-result-dish { text-align: center; margin-bottom: 10px; }
+.cooking-result-dish span { font-size: 40px; display: block; }
+.cooking-result-log span:not(.cooking-bibo-light) { display: block; margin-bottom: 6px; font-size: 13px; line-height: 1.6; color: rgba(220,215,205,.88); }
+.cooking-result-actions { display: flex; gap: 10px; margin-top: 14px; }
+.cooking-primary, .cooking-secondary {
+  padding: 9px 18px; border-radius: 8px; cursor: pointer; font: inherit; font-size: 13px;
+  border: 1px solid rgba(255,255,255,.14);
+}
+.cooking-primary { background: rgba(159,199,216,.18); color: rgba(230,240,245,.95); }
+.cooking-secondary { background: rgba(30,35,34,.7); color: rgba(240,235,225,.9); }
+.cooking-primary:hover, .cooking-secondary:hover { background: rgba(45,52,50,.95); }
+
+/* ── Crazy Eights ────────────────────────────────────── */
+
+#eights-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.eights-table {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.eights-pile {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-face {
+  width: 54px;
+  height: 80px;
+  background: #fff;
+  border-radius: 6px;
+  border: 1px solid rgba(0,0,0,0.15);
+  display: flex;
+  flex-direction: column;
+  padding: 5px;
+  font-size: 15px;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  position: relative;
+  flex-shrink: 0;
+}
+
+.card-face.is-red { color: #c0392b; }
+.card-face.is-black { color: #1a1a1a; }
+
+.card-back {
+  width: 54px;
+  height: 80px;
+  background: linear-gradient(135deg, #2c4a6e, #1a2f45);
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.1);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  flex-shrink: 0;
+}
+
+.eights-hand {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  justify-content: center;
+  margin-top: 4px;
+}
+
+.eights-hand .card-face {
+  cursor: pointer;
+  transition: transform 120ms ease;
+}
+
+.eights-hand .card-face:hover { transform: translateY(-6px); }
+.eights-hand .card-face.is-playable { box-shadow: 0 0 0 2px rgba(159,199,216,0.6), 0 2px 8px rgba(0,0,0,0.3); }
+.eights-hand .card-face.is-unplayable { opacity: 0.4; cursor: default; }
+
+.eights-label {
+  font-size: 12px;
+  color: rgba(180,175,165,0.7);
+  text-align: center;
+  letter-spacing: 0.08em;
+}
+
+.eights-bibo-hand {
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+}
+
+.eights-status {
+  font-size: 13px;
+  color: rgba(200, 195, 185, 0.8);
+  text-align: center;
+  min-height: 20px;
+}
+
+.eights-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.eights-btn {
+  padding: 8px 16px;
+  background: rgba(30,35,34,0.85);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 6px;
+  color: rgba(248,245,237,0.85);
+  font: 13px/1 system-ui, sans-serif;
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+
+.eights-btn:hover { background: rgba(45,52,50,0.95); }
+
+.suit-picker {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.suit-picker button {
+  padding: 8px 14px;
+  background: rgba(30,35,34,0.85);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 6px;
+  color: rgba(248,245,237,0.85);
+  font: 14px/1 system-ui, sans-serif;
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+
+.suit-picker button:hover { background: rgba(45,52,50,0.95); }
+
+.eights-result {
+  text-align: center;
+  padding: 16px;
+}
+
+.eights-result strong {
+  display: block;
+  font-size: 18px;
+  margin-bottom: 8px;
+  color: rgba(246,241,230,0.96);
+}

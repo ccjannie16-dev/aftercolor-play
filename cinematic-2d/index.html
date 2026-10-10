@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aftercolor — Cinematic 2D</title>
+  <script>
+    document.documentElement.dataset.runtimeErrors = "0";
+    window.addEventListener("error", () => {
+      document.documentElement.dataset.runtimeErrors = String(Number(document.documentElement.dataset.runtimeErrors || 0) + 1);
+    });
+    window.addEventListener("unhandledrejection", () => {
+      document.documentElement.dataset.runtimeErrors = String(Number(document.documentElement.dataset.runtimeErrors || 0) + 1);
+    });
+  </script>
+  <link rel="stylesheet" href="css/main.css?v=portfolio-fix2-20261009">
+  <link rel="stylesheet" href="css/dialogue.css">
+  <link rel="stylesheet" href="css/minigame.css?v=portfolio-fix3-20261009">
+  <link rel="stylesheet" href="css/systems.css">
+  <link rel="stylesheet" href="../legacy-2d/minigame.css">
+  <link rel="stylesheet" href="../legacy-2d/card-game.css">
+  <link rel="stylesheet" href="../legacy-2d/match3.css">
+  <link rel="stylesheet" href="../legacy-2d/match3-v9.css">
+  <link rel="stylesheet" href="css/legacy-games.css?v=viewport-host-20260803">
+</head>
+<body>
+
+<div id="game-shell">
+  <div id="scene-viewport">
+
+    <!-- ── Screen fade ─────────────────────────────── -->
+    <div id="screen-fade"></div>
+
+    <!-- ── Prologue / opening sequence ────────────── -->
+    <div id="prologue-stage">
+      <img id="prologue-image" alt="">
+      <div class="prologue-caption"></div>
+      <div id="prologue-title-card">
+        <span class="aftercolor-title">AFTERCOLOR</span>
+        <span class="aftercolor-sub">A quiet memory story</span>
+      </div>
+      <button id="prologue-skip" type="button">Skip</button>
+    </div>
+
+    <!-- ── Title screen ────────────────────────────── -->
+    <div id="title-screen">
+      <span class="game-title">AFTERCOLOR</span>
+      <span class="game-tagline">A quiet memory story</span>
+      <nav class="title-menu" aria-label="Main menu">
+        <button id="btn-new-game" type="button">New Game</button>
+        <button id="btn-continue" type="button">Continue</button>
+        <button id="btn-gallery" type="button">Gallery</button>
+        <button id="btn-games" type="button">Games</button>
+        <button id="btn-settings" type="button">Settings</button>
+      </nav>
+    </div>
+
+    <!-- ── In-play menu ─────────────────────────────── -->
+    <button id="game-menu-btn" type="button" aria-label="Menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+
+    <div id="game-menu-panel" role="menu" aria-label="Game menu">
+      <button id="menu-resume" type="button" role="menuitem">Resume</button>
+      <button id="menu-save" type="button" role="menuitem">Save</button>
+      <button id="menu-gallery" type="button" role="menuitem">Gallery</button>
+      <button id="menu-games" type="button" role="menuitem">Games</button>
+      <button id="menu-settings" type="button" role="menuitem">Settings</button>
+      <button id="menu-restart" type="button" role="menuitem">Restart chapter</button>
+      <button id="menu-title" type="button" role="menuitem">Return to title</button>
+    </div>
+
+    <!-- ── Context label ────────────────────────────── -->
+    <div id="context-label" role="tooltip" aria-hidden="true"></div>
+
+    <!-- Quiet, scene-integrated first-visit direction. It is never a room
+         selector and disappears as soon as the player acts. -->
+    <div id="room-guidance" role="status" aria-live="polite" aria-hidden="true">
+      <span class="room-guidance-kicker">Look for the pale markers</span>
+      <span class="room-guidance-action"></span>
+    </div>
+
+    <!-- ── Focus / inspection overlay ──────────────── -->
+    <div id="focus-overlay" role="dialog" aria-modal="true" aria-label="Object inspection" aria-hidden="true">
+      <div class="focus-object-context"></div>
+      <div id="minigame-stage"></div>
+      <button id="quiet-close-btn" class="quiet-close" type="button" aria-label="Return to room">Return</button>
+    </div>
+
+    <!-- ── Dialogue panel ───────────────────────────── -->
+    <div id="dialogue-panel" role="region" aria-label="Dialogue" aria-live="polite">
+      <span class="dialogue-speaker" data-speaker=""></span>
+      <div class="dialogue-text"></div>
+      <div class="dialogue-advance" aria-hidden="true"></div>
+      <button class="dialogue-skip" type="button">Skip</button>
+    </div>
+
+    <!-- ── Ending screen ────────────────────────────── -->
+    <div id="ending-screen" class="ending-screen" role="dialog" aria-modal="true" aria-hidden="true">
+      <div class="ending-inner">
+        <p class="ending-kicker">Aftercolor</p>
+        <h2 class="ending-title">Ending</h2>
+        <div class="ending-body"></div>
+        <div class="ending-actions">
+          <button id="ending-last-choice" type="button">Return to last choice</button>
+          <button id="ending-retry" type="button">Replay chapter</button>
+          <button id="ending-title-return" type="button">Return to title</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Status (save feedback) ───────────────────── -->
+    <div id="game-status" aria-live="polite" style="position:absolute;top:8%;right:3%;font-size:12px;color:rgba(180,175,165,0.7);pointer-events:none;"></div>
+
+    <!-- ── Gallery / Flowchart (§15) ─────────────────── -->
+    <div id="gallery-panel" role="dialog" aria-modal="true" aria-label="Gallery hub" aria-hidden="true">
+      <button id="gallery-close" type="button" aria-label="Close gallery">×</button>
+      <div class="gallery-inner">
+        <p class="gallery-kicker">Aftercolor</p>
+        <h2 class="gallery-heading" id="gallery-heading">Gallery</h2>
+        <div id="gallery-breadcrumb" aria-live="polite"></div>
+        <div id="gallery-content"></div>
+      </div>
+    </div>
+
+    <!-- ── Full settings ────────────────────────────── -->
+    <div id="settings-panel" role="dialog" aria-modal="true" aria-label="Settings" aria-hidden="true">
+      <button id="settings-close" type="button" aria-label="Close settings">×</button>
+      <div class="settings-inner">
+        <p class="gallery-kicker">Aftercolor</p>
+        <h2 class="gallery-heading">Settings</h2>
+        <div class="settings-list" role="list">
+          <button class="setting-row" type="button" data-setting="language"><span>Language</span><strong id="language-value">English</strong></button>
+          <button class="setting-row" type="button" data-setting="textSpeed"><span>Text Speed</span><strong id="text-speed-value">Normal</strong></button>
+          <label class="setting-row setting-slider"><span>Music Volume</span><input id="music-volume" type="range" min="0" max="100" step="5"><strong id="music-volume-value">70</strong></label>
+          <label class="setting-row setting-slider"><span>Sound Volume</span><input id="sound-volume" type="range" min="0" max="100" step="5"><strong id="sound-volume-value">80</strong></label>
+          <button class="setting-row" type="button" data-setting="fullscreen"><span>Fullscreen</span><strong id="fullscreen-value">Off</strong></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Games panel ──────────────────────────────── -->
+    <div id="games-panel" role="dialog" aria-modal="true" aria-label="Mini-games" aria-hidden="true">
+      <button id="games-close" type="button" aria-label="Close games">×</button>
+      <div class="gallery-inner">
+        <p class="gallery-kicker">Aftercolor</p>
+        <h2 class="gallery-heading">Mini-Games</h2>
+        <div id="games-list"></div>
+      </div>
+    </div>
+
+  </div><!-- /#scene-viewport -->
+</div><!-- /#game-shell -->
+
+<!-- Protected legacy games mount at document level so portrait layouts are
+     never clipped by the cinematic 16:9 scene viewport. -->
+<div id="stage" class="legacy-game-host" aria-live="polite"></div>
+
+<!-- The approved legacy Cooking game owns this stable host. -->
+<div id="minigameOverlay" aria-label="Cooking mini-game" role="dialog" aria-modal="true" aria-hidden="true">
+  <div class="mg-wrapper">
+    <div class="mg-header">
+      <h2>Abby's Recipe</h2>
+      <button id="minigameClose" type="button" aria-label="Close cooking practice">&times;</button>
+    </div>
+    <div id="minigameContent"></div>
+  </div>
+</div>
+
+<!-- Scripts load in dependency order -->
+<script src="js/state.js?v=bedroom-restoration-20260803"></script>
+<script src="../legacy-2d/story-data.js"></script>
+<script src="../legacy-2d/recipes.js?v=legacy-restore-20260803"></script>
+<script src="../legacy-2d/minigame.js?v=legacy-restore-20260803"></script>
+<script src="../legacy-2d/card-game.js?v=legacy-restore-20260803"></script>
+<script src="js/match3-v9.js?v=portfolio-fix-20261009"></script>
+<script src="js/ending.js"></script>
+<script src="js/scenes.js?v=bedroom-restoration-20260803"></script>
+<script src="js/flowchart-data.js?v=bedroom-restoration-20260803"></script>
+<script src="js/dialogue-inventory.js"></script>
+<script src="js/dialogue.js"></script>
+<script src="js/echo.js"></script>
+<script src="js/engine.js?v=portfolio-fix-20261009"></script>
+<script src="js/prologue.js"></script>
+<script src="js/minigames/jigsaw.js?v=portfolio-fix3-20261009"></script>
+<script src="js/minigames/triads.js"></script>
+<script src="js/minigames/cooking.js"></script>
+<script src="js/minigames/eights.js"></script>
+<script src="js/systems.js?v=bedroom-restoration-2-20260803"></script>
+<script src="js/legacy-games-bridge.js?v=legacy-restore-20260803"></script>
+<script src="js/card-night-presentation.js?v=anna-presentation-20260803"></script>
+<script src="js/main.js?v=portfolio-fix-20261009"></script>
+
+<style>
+/* Ending screen inline — minimal */
+.ending-screen {
+  position: absolute;
+  inset: 0;
+  background: rgba(10,12,12,0.96);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 900;
+  flex-direction: column;
+}
+
+.ending-screen.is-active { display: flex; }
+
+.ending-inner {
+  max-width: 560px;
+  padding: 40px;
+  text-align: center;
+  color: rgba(246,241,230,0.92);
+}
+
+.ending-kicker {
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(159,199,216,0.8);
+  margin-bottom: 12px;
+}
+
+.ending-title {
+  font-size: clamp(20px, 3vw, 34px);
+  font-weight: 300;
+  letter-spacing: 0.08em;
+  margin-bottom: 24px;
+}
+
+.ending-body {
+  font-size: 15px;
+  line-height: 1.7;
+  color: rgba(220,215,200,0.85);
+  white-space: pre-line;
+  margin-bottom: 32px;
+}
+
+.ending-actions button {
+  padding: 10px 24px;
+  background: rgba(30,35,34,0.9);
+  border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 6px;
+  color: rgba(248,245,237,0.9);
+  font: 14px/1 system-ui, sans-serif;
+  cursor: pointer;
+}
+
+.ending-actions button:hover { background: rgba(45,52,50,0.95); }
+</style>
+
+</body>
+</html>

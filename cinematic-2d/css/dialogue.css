@@ -1,0 +1,164 @@
+/* AFTERCOLOR — Cinematic 2D — Dialogue panel */
+
+#dialogue-panel {
+  position: absolute;
+  left: 4%;
+  right: 4%;
+  bottom: 3%;
+  min-height: min(118px, 30%);
+  padding: 18px 86px 20px 24px;
+  border-radius: 12px;
+  background: linear-gradient(
+    180deg,
+    rgba(24, 28, 27, 0.76),
+    rgba(17, 20, 20, 0.9)
+  );
+  color: rgba(250, 248, 241, 0.96);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(8px);
+  z-index: 100;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 300ms ease;
+}
+
+#dialogue-panel.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.dialogue-speaker {
+  display: block;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  color: var(--ui-muted);
+}
+
+.dialogue-speaker[data-speaker="ANNA"] { color: rgba(180, 170, 155, 0.85); }
+.dialogue-speaker[data-speaker="BIBO"] { color: rgba(159, 199, 216, 0.9); }
+.dialogue-speaker[data-speaker="ECHO"] { display: none; }
+.dialogue-speaker[data-speaker="NARRATOR"] { display: none; }
+
+.dialogue-text {
+  font-size: clamp(14px, 1.4vw, 18px);
+  line-height: 1.55;
+  color: rgba(250, 248, 241, 0.96);
+  min-height: 2em;
+}
+
+.dialogue-text.is-narrator {
+  font-style: italic;
+  color: rgba(220, 215, 200, 0.8);
+}
+
+/* Choices inside panel */
+
+.choice-list {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.choice-list button {
+  display: block;
+  width: 100%;
+  padding: 9px 4px;
+  border: 0;
+  background: transparent;
+  color: rgba(250, 248, 241, 0.9);
+  text-align: left;
+  font: inherit;
+  font-size: clamp(13px, 1.25vw, 16px);
+  cursor: pointer;
+  transition: transform 120ms ease, color 120ms ease;
+}
+
+.choice-list button::before {
+  content: '— ';
+  color: rgba(159, 199, 216, 0.9);
+}
+
+.choice-list button:hover,
+.choice-list button:focus {
+  color: #fff;
+  transform: translateX(4px);
+  outline: none;
+}
+
+/* Advance indicator */
+
+.dialogue-advance {
+  position: absolute;
+  right: 20px;
+  bottom: 18px;
+  width: 14px;
+  height: 14px;
+  border-right: 2px solid rgba(159, 199, 216, 0.7);
+  border-bottom: 2px solid rgba(159, 199, 216, 0.7);
+  transform: rotate(45deg);
+  animation: advancePulse 1.2s ease-in-out infinite;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 200ms ease;
+}
+
+.dialogue-advance.is-visible { opacity: 1; }
+
+@keyframes advancePulse {
+  0%, 100% { opacity: 0.5; transform: rotate(45deg) translateY(0); }
+  50% { opacity: 1; transform: rotate(45deg) translateY(3px); }
+}
+
+/* Skip button */
+
+.dialogue-skip {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  min-width: 58px;
+  min-height: 34px;
+  padding: 7px 12px;
+  background: rgba(9, 13, 13, 0.78);
+  border: 1px solid rgba(159,199,216,0.48);
+  border-radius: 999px;
+  color: rgba(248, 245, 237, 0.94);
+  font: 600 12px/1 system-ui, sans-serif;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 200ms ease;
+  pointer-events: none;
+}
+
+.dialogue-skip.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.dialogue-skip:hover,
+.dialogue-skip:focus-visible {
+  background: rgba(50, 73, 78, 0.95);
+  outline: 2px solid rgba(159,199,216,0.9);
+  outline-offset: 2px;
+}
+
+@media (max-width: 520px) {
+  #dialogue-panel {
+    left: 3%;
+    right: 3%;
+    bottom: 2%;
+    max-height: 46%;
+    overflow-y: auto;
+    padding: 14px 72px 14px 16px;
+  }
+
+  .dialogue-skip {
+    top: 10px;
+    right: 10px;
+    min-width: 52px;
+    min-height: 32px;
+  }
+}

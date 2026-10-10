@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 110" role="img" aria-label="Stray cat sprite">
+  <ellipse cx="72" cy="94" rx="54" ry="10" fill="#2d3936" opacity=".2"/>
+  <path d="M36 70 C38 34 74 25 111 41 C138 52 143 78 116 88 C80 101 34 94 36 70Z" fill="#404943"/>
+  <path d="M112 44 C137 22 161 23 166 48 C151 42 136 48 122 62Z" fill="none" stroke="#404943" stroke-width="10" stroke-linecap="round"/>
+  <path d="M29 62 L44 35 L55 60Z" fill="#404943"/>
+  <circle cx="49" cy="62" r="24" fill="#404943"/>
+  <circle cx="41" cy="63" r="3" fill="#f5df8f"/><circle cx="58" cy="63" r="3" fill="#f5df8f"/>
+  <path d="M49 69 C53 72 56 72 60 69" fill="none" stroke="#d8caa4" stroke-width="3" stroke-linecap="round"/>
+  <path d="M58 87 L54 105 M91 90 L91 106 M113 82 L122 101" stroke="#404943" stroke-width="9" stroke-linecap="round"/>
+</svg>

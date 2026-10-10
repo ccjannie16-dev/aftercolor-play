@@ -1,0 +1,1194 @@
+/* AFTERCOLOR — Cinematic 2D — Core viewport and camera */
+
+:root {
+  --scene-ratio: 16 / 9;
+  --ui-cream: rgba(246, 241, 230, 0.94);
+  --ui-ink: #242827;
+  --ui-muted: #737a78;
+  --ui-blue: #9fc7d8;
+  --shadow-soft: 0 16px 48px rgba(12, 16, 18, 0.28);
+  --transition-scene: 700ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #111514;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+#game-shell {
+  width: 100vw;
+  height: 100vh;
+  display: grid;
+  place-items: center;
+  background: #111514;
+}
+
+#scene-viewport {
+  position: relative;
+  width: min(100vw, calc(100vh * 16 / 9));
+  height: min(100vh, calc(100vw * 9 / 16));
+  overflow: hidden;
+  background: #171b1a;
+  user-select: none;
+}
+
+/* ── Scene camera ─────────────────────────────────────── */
+
+.scene-camera {
+  position: absolute;
+  inset: -3%;
+  width: 106%;
+  height: 106%;
+  transform-origin: center;
+  transition: transform 900ms cubic-bezier(0.2, 0.7, 0.2, 1);
+  will-change: transform;
+}
+
+/* ── Scene layers ─────────────────────────────────────── */
+
+.scene {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 700ms ease;
+  pointer-events: none;
+}
+
+.scene.is-active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.scene-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.scene-layer.bg img,
+.scene-layer.bg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.scene-layer.bg {
+  filter: grayscale(1) contrast(0.92) brightness(0.88);
+}
+
+.scene-layer.color-layer {
+  mix-blend-mode: normal;
+  pointer-events: none;
+}
+
+.scene-layer.object-layer,
+.scene-layer.character-layer,
+.scene-layer.foreground-layer,
+.scene-layer.light-layer {
+  pointer-events: none;
+}
+
+.object-atmosphere {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 55% 55%, transparent 0 54%, rgba(7, 12, 13, 0.12) 100%);
+}
+
+.foreground-depth {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(8,12,13,.12), transparent 10%, transparent 90%, rgba(8,12,13,.1));
+  mix-blend-mode: multiply;
+}
+
+.scene-layer.interaction-layer {
+  pointer-events: auto;
+  z-index: 10;
+}
+
+/* ── Bibo sprite ─────────────────────────────────────── */
+
+.bibo-sprite-wrap {
+  position: absolute;
+  transform-origin: bottom center;
+  pointer-events: none;
+  transition: transform 400ms ease, opacity 400ms ease;
+}
+
+.bibo-pose-sprite {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  background-image: url("../assets/characters/bibo-poses-v3.png");
+  background-size: 300% 200%;
+  background-repeat: no-repeat;
+  background-position: 0 0;
+  filter: grayscale(0.25) brightness(0.9) saturate(0.85);
+  animation: biboBreath 4s ease-in-out infinite;
+}
+
+.bibo-sprite-wrap[data-pose="idle-front"] .bibo-pose-sprite { background-position: 0 0; }
+.bibo-sprite-wrap[data-pose="idle-three-quarter"] .bibo-pose-sprite,
+.bibo-sprite-wrap[data-pose="turned"] .bibo-pose-sprite { background-position: 50% 0; }
+.bibo-sprite-wrap[data-pose="slippers"] .bibo-pose-sprite { background-position: 100% 0; }
+.bibo-sprite-wrap[data-pose="sofa-reach"] .bibo-pose-sprite { background-position: 0 100%; }
+.bibo-sprite-wrap[data-pose="part-reach"] .bibo-pose-sprite { background-position: 50% 100%; }
+.bibo-sprite-wrap[data-pose="seated"] .bibo-pose-sprite,
+.bibo-sprite-wrap[data-pose="balcony-seated"] .bibo-pose-sprite,
+.bibo-sprite-wrap[data-pose="light-off"] .bibo-pose-sprite { background-position: 100% 100%; }
+.bibo-sprite-wrap[data-pose="light-off"] .bibo-indicator { opacity: 0; }
+
+.bibo-contact-shadow {
+  position: absolute;
+  bottom: -4%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.22);
+  filter: blur(8px);
+  pointer-events: none;
+}
+
+.bibo-indicator {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #6ec6e8;
+  box-shadow: 0 0 6px 2px rgba(110, 198, 232, 0.6);
+  pointer-events: none;
+  animation: biboBreath 4s ease-in-out infinite;
+}
+
+@keyframes biboBreath {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-1.5px); }
+}
+
+/* ── Hotspot interaction ──────────────────────────────── */
+
+.hotspot {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+  /* A restrained brightness lift, not a color reveal: earlier this was set to
+     the scene's own full-color background image (via JS) faded in to 0.92
+     opacity, which read as a huge saturated rectangle/polygon flashing over
+     the gray scene on hover. A flat low-opacity warm-white wash gives the
+     spec's "4-7% local brightness" without ever showing color. */
+  background: transparent;
+  border: none;
+  padding: 0;
+  z-index: 10;
+  opacity: 1;
+  transition: background-color 150ms ease;
+}
+
+.hotspot.is-highlighted,
+.hotspot.is-hint {
+  background: rgba(255, 248, 235, 0.055);
+}
+
+.hotspot.is-hint {
+  background: rgba(205, 229, 237, 0.07);
+}
+
+.scene-marker {
+  position: absolute;
+  left: var(--marker-x, 50%);
+  top: var(--marker-y, 50%);
+  width: 10px;
+  height: 10px;
+  border: 1px solid rgba(223, 238, 241, 0.82);
+  border-radius: 50%;
+  background: rgba(125, 173, 190, 0.28);
+  box-shadow: 0 0 0 3px rgba(18, 25, 26, 0.3), 0 0 12px rgba(181, 218, 229, 0.3);
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.9);
+  transition: opacity 180ms ease, transform 180ms ease, background-color 180ms ease;
+  pointer-events: none;
+}
+
+.hotspot.is-available .scene-marker {
+  opacity: 0.78;
+}
+
+.scene-action-label {
+  position: absolute;
+  left: var(--marker-x, 50%);
+  top: var(--marker-y, 50%);
+  z-index: 42;
+  width: max-content;
+  max-width: 150px;
+  padding: 3px 7px 4px;
+  border: 1px solid rgba(208, 229, 233, 0.22);
+  border-radius: 5px;
+  background: rgba(18, 24, 24, 0.72);
+  box-shadow: 0 2px 9px rgba(0, 0, 0, 0.26);
+  color: rgba(241, 245, 240, 0.9);
+  font: 550 11px/1.22 system-ui, sans-serif;
+  letter-spacing: 0.005em;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translate(calc(12px + var(--label-shift-x, 0px)), calc(-50% + var(--label-shift-y, 0px)));
+  transition: opacity 150ms ease, background-color 150ms ease, border-color 150ms ease;
+  pointer-events: none;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.72);
+}
+
+.scene-action-label[data-side="left"] {
+  transform: translate(calc(-100% - 12px + var(--label-shift-x, 0px)), calc(-50% + var(--label-shift-y, 0px)));
+}
+
+.scene-action-label.is-visible {
+  opacity: 0.86;
+}
+
+.scene-action-label.is-highlighted,
+.hotspot.is-hint + .scene-action-label {
+  opacity: 1;
+  border-color: rgba(208, 229, 233, 0.48);
+  background: rgba(18, 24, 24, 0.9);
+}
+
+.hotspot[data-type="exit"] .scene-marker {
+  width: 9px;
+  height: 16px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, rgba(159,199,216,.18), rgba(229,241,243,.56));
+}
+
+.hotspot.is-highlighted .scene-marker,
+.hotspot.is-hint .scene-marker,
+.hotspot:focus-visible .scene-marker {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1.18);
+  background-color: rgba(188, 220, 229, 0.62);
+}
+
+.hotspot.is-hint .scene-marker {
+  animation: sceneMarkerNudge 1.4s ease-in-out 1;
+}
+
+@keyframes sceneMarkerNudge {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(18,25,26,.3), 0 0 12px rgba(181,218,229,.3); }
+  50% { box-shadow: 0 0 0 6px rgba(159,199,216,.16), 0 0 18px rgba(199,229,236,.5); }
+}
+
+.hotspot-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* ── Context label ───────────────────────────────────── */
+
+#context-label {
+  position: fixed;
+  max-width: 220px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: rgba(20, 24, 23, 0.82);
+  color: rgba(248, 245, 237, 0.95);
+  font: 500 13px/1.3 system-ui, sans-serif;
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(14px, 14px);
+  transition: opacity 120ms ease;
+  z-index: 900;
+  white-space: nowrap;
+}
+
+#context-label.is-visible {
+  opacity: 1;
+}
+
+/* ── First-visit room guidance ─────────────────────────── */
+
+#room-guidance {
+  position: absolute;
+  left: 3.5%;
+  bottom: 4.5%;
+  max-width: min(360px, 62%);
+  padding: 8px 12px 9px 14px;
+  border-left: 2px solid rgba(159,199,216,.68);
+  background: linear-gradient(90deg, rgba(16,22,22,.68), rgba(16,22,22,.08));
+  color: rgba(248, 245, 237, 0.92);
+  font: 500 12px/1.35 system-ui, sans-serif;
+  text-align: left;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 400;
+  transform: translateX(-8px);
+  transition: opacity 260ms ease, transform 260ms ease;
+}
+
+.room-guidance-kicker,
+.room-guidance-action { display: block; }
+
+.room-guidance-kicker {
+  color: rgba(201, 219, 222, .68);
+  font-size: 10px;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+}
+
+.room-guidance-action { margin-top: 2px; }
+
+#room-guidance.is-visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #room-guidance { transition: opacity 150ms ease; }
+  .hotspot.is-hint .scene-marker { animation: none; }
+}
+
+@media (max-width: 520px) {
+  .scene-action-label {
+    max-width: 112px;
+    padding: 2px 4px 3px;
+    font-size: 10px;
+    line-height: 1.15;
+    white-space: normal;
+  }
+}
+
+/* ── Screen fade ─────────────────────────────────────── */
+
+#screen-fade {
+  position: absolute;
+  inset: 0;
+  background: #000;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 800;
+  transition: opacity 600ms ease;
+}
+
+#screen-fade.is-fading {
+  opacity: 1;
+}
+
+/* ── Inspection overlay ──────────────────────────────── */
+
+#focus-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(14, 17, 17, 0.72);
+  backdrop-filter: blur(2px);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 760;
+  transition: opacity 500ms ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#focus-overlay.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.focus-object-context {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+#minigame-stage {
+  position: relative;
+  max-width: 88%;
+  max-height: 78%;
+  overflow: auto;
+}
+
+.quiet-close {
+  position: absolute;
+  bottom: 3%;
+  right: 3%;
+  padding: 8px 16px;
+  background: rgba(30, 35, 34, 0.88);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 6px;
+  color: rgba(248, 245, 237, 0.85);
+  font: 500 13px/1 system-ui, sans-serif;
+  cursor: pointer;
+  z-index: 300;
+  transition: background 150ms ease;
+}
+
+.quiet-close:hover { background: rgba(40, 47, 45, 0.95); }
+
+/* ── Memory/echo text ────────────────────────────────── */
+
+.echo-text {
+  position: absolute;
+  max-width: 34%;
+  color: rgba(252, 247, 237, 0.84);
+  font-family: 'Caveat', 'Segoe Print', cursive;
+  font-size: clamp(18px, 1.7vw, 28px);
+  line-height: 1.2;
+  text-shadow: 0 2px 14px rgba(0,0,0,0.35);
+  pointer-events: none;
+  animation: echoInOut 4s ease forwards;
+  z-index: 50;
+}
+
+@keyframes echoInOut {
+  0% { opacity: 0; transform: translateY(6px); }
+  15% { opacity: 1; transform: translateY(0); }
+  75% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-4px); }
+}
+
+/* ── Menu ────────────────────────────────────────────── */
+
+#title-screen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  padding-bottom: 10%;
+  background:
+    linear-gradient(180deg, rgba(16,23,27,.22) 0%, rgba(8,11,13,.2) 32%, rgba(8,10,11,.92) 100%),
+    url("../../legacy-2d/assets/cg/cg_prologue_02_after_the_color_drains.png") center/cover no-repeat;
+  z-index: 600;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 700ms ease;
+}
+
+#title-screen.is-active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+#title-screen .game-title {
+  font-size: clamp(28px, 4vw, 56px);
+  font-weight: 300;
+  letter-spacing: 0.18em;
+  color: rgba(246, 241, 230, 0.96);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+#title-screen .game-tagline {
+  font-size: clamp(11px, 1.1vw, 15px);
+  letter-spacing: 0.22em;
+  color: rgba(180, 175, 165, 0.72);
+  text-transform: uppercase;
+  margin-bottom: 32px;
+}
+
+.title-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: clamp(180px, 22vw, 280px);
+}
+
+.title-menu button {
+  display: block;
+  width: 100%;
+  padding: 10px 20px;
+  background: rgba(20,24,23,0.78);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 6px;
+  color: rgba(248,245,237,0.9);
+  font: 500 14px/1 system-ui, sans-serif;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  text-align: center;
+  transition: background 150ms ease, border-color 150ms ease;
+}
+
+.title-menu button:hover,
+.title-menu button:focus {
+  background: rgba(35,42,40,0.92);
+  border-color: rgba(255,255,255,0.2);
+  outline: none;
+}
+
+.title-menu button:focus-visible {
+  outline: 2px solid rgba(159, 199, 216, 0.85);
+  outline-offset: 2px;
+}
+
+.title-menu button:disabled {
+  opacity: .35;
+  cursor: default;
+}
+
+/* The cinematic story camera remains 16:9. Only the active title surface
+   expands into a portrait viewport so its complete navigation stays visible
+   and hit-testable above and below the letterboxed story frame. */
+@media (max-width: 520px) and (orientation: portrait) {
+  body.is-title-active #scene-viewport {
+    width: 100vw;
+    height: 100dvh;
+  }
+
+  body.is-title-active #title-screen {
+    justify-content: center;
+    min-height: 100%;
+    padding: max(24px, env(safe-area-inset-top)) 24px max(24px, env(safe-area-inset-bottom));
+    overflow-y: auto;
+  }
+
+  body.is-title-active #title-screen .game-title {
+    font-size: clamp(28px, 10vw, 42px);
+  }
+
+  body.is-title-active #title-screen .game-tagline {
+    margin-bottom: 28px;
+    text-align: center;
+  }
+
+  body.is-title-active .title-menu {
+    width: min(280px, 100%);
+  }
+
+  body.is-title-active .title-menu button {
+    min-height: 44px;
+  }
+}
+
+/* ── Small game menu (in-play) ───────────────────────── */
+
+#game-menu-btn {
+  position: absolute;
+  top: 2.5%;
+  left: 2.5%;
+  width: 28px;
+  height: 28px;
+  background: rgba(20,24,23,0.55);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 5px;
+  cursor: pointer;
+  z-index: 700;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px;
+  transition: background 150ms ease;
+}
+
+#game-menu-btn.is-visible { display: flex; }
+#game-menu-btn:hover { background: rgba(35,42,40,0.82); }
+
+#game-menu-btn span {
+  display: block;
+  width: 100%;
+  height: 1.5px;
+  background: rgba(248,245,237,0.7);
+  border-radius: 1px;
+}
+
+#game-menu-panel {
+  position: absolute;
+  top: 8%;
+  left: 2.5%;
+  min-width: 160px;
+  background: rgba(20,24,23,0.92);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  padding: 8px 0;
+  z-index: 710;
+  display: none;
+}
+
+#game-menu-panel.is-open { display: block; }
+
+#game-menu-panel button {
+  display: block;
+  width: 100%;
+  padding: 9px 18px;
+  background: none;
+  border: none;
+  color: rgba(248,245,237,0.85);
+  font: 14px/1 system-ui, sans-serif;
+  text-align: left;
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+
+#game-menu-panel button:hover { background: rgba(255,255,255,0.07); }
+
+/* ── Light layer ─────────────────────────────────────── */
+
+.scene-light {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 70% 20%, rgba(255,245,200,0.04) 0%, transparent 60%);
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+
+/* ── Color restoration regions ───────────────────────── */
+
+.color-region {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 1400ms ease;
+  pointer-events: none;
+}
+
+.color-region img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Bibo visibly straightens the slippers: this region animates a real
+   rotate+shift back to identity alongside its color fade-in, instead of
+   only gaining color in the same crooked position. */
+.color-region.slipper-realign {
+  transform-origin: 50% 82%;
+  transition: opacity 900ms ease, transform 900ms cubic-bezier(.2, .7, .2, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .color-region.slipper-realign { transition: opacity 400ms ease; }
+}
+
+.threshold-cat {
+  position: absolute;
+  left: 46%;
+  bottom: 18%;
+  width: 8%;
+  opacity: 0;
+  transform: translate(-42px, 12px) scale(.86);
+  filter: grayscale(.35) brightness(.86) drop-shadow(0 8px 8px rgba(0,0,0,.28));
+  transition: opacity 700ms ease, transform 3200ms cubic-bezier(.2,.7,.2,1), filter 1800ms ease;
+}
+
+.threshold-cat.is-inside {
+  opacity: 1;
+  transform: translate(195px, 5px) scale(.95);
+  filter: grayscale(0) brightness(.96) drop-shadow(0 8px 8px rgba(0,0,0,.24));
+}
+
+/* ── Prologue / cinematic ────────────────────────────── */
+
+#prologue-stage {
+  position: absolute;
+  inset: 0;
+  background: #000;
+  z-index: 500;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 600ms ease;
+}
+
+#prologue-stage.is-active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+#prologue-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 800ms ease;
+}
+
+#prologue-image.is-visible { opacity: 1; }
+
+.prologue-caption {
+  position: absolute;
+  bottom: 12%;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  color: rgba(246,241,230,0.92);
+  font-size: clamp(16px, 1.8vw, 24px);
+  letter-spacing: 0.04em;
+  text-shadow: 0 2px 12px rgba(0,0,0,0.6);
+  opacity: 0;
+  transition: opacity 600ms ease;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.prologue-caption.is-visible { opacity: 1; }
+
+#prologue-skip {
+  position: absolute;
+  bottom: 3%;
+  right: 3%;
+  padding: 7px 14px;
+  background: rgba(20,24,23,0.6);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 5px;
+  color: rgba(248,245,237,0.7);
+  font: 13px/1 system-ui, sans-serif;
+  cursor: pointer;
+}
+
+#prologue-title-card {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  background: #000;
+  opacity: 0;
+  transition: opacity 700ms ease;
+  pointer-events: none;
+}
+
+#prologue-title-card.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+#prologue-title-card .aftercolor-title {
+  font-size: clamp(32px, 5vw, 72px);
+  font-weight: 200;
+  letter-spacing: 0.25em;
+  color: rgba(246,241,230,0.95);
+  text-transform: uppercase;
+}
+
+#prologue-title-card .aftercolor-sub {
+  margin-top: 12px;
+  font-size: clamp(11px, 1vw, 15px);
+  letter-spacing: 0.28em;
+  color: rgba(180,175,165,0.65);
+  text-transform: uppercase;
+}
+
+/* ── Reduced motion ──────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .scene-camera {
+    transition: none;
+  }
+  .scene {
+    transition: opacity 200ms ease;
+  }
+  .echo-text {
+    animation: none;
+    opacity: 1;
+  }
+  .bibo-pose-sprite {
+    animation: none;
+  }
+}
+
+/* ── Gallery / Flowchart (§15) ──────────────────────── */
+
+#gallery-panel {
+  position: absolute;
+  inset: 0;
+  background: rgba(10, 12, 12, 0.96);
+  z-index: 750;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 40px 24px 32px;
+  overflow-y: auto;
+}
+
+#gallery-panel.is-open { display: flex; }
+
+#gallery-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 30px;
+  height: 30px;
+  background: rgba(30, 35, 34, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 50%;
+  color: rgba(248, 245, 237, 0.85);
+  font: 500 18px/1 system-ui, sans-serif;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 150ms ease;
+}
+
+#gallery-close:hover { background: rgba(45, 52, 50, 0.95); }
+
+.gallery-inner {
+  max-width: 520px;
+  width: 100%;
+}
+
+.gallery-kicker {
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(159, 199, 216, 0.8);
+  margin-bottom: 8px;
+}
+
+.gallery-heading {
+  font-size: clamp(18px, 2.5vw, 28px);
+  font-weight: 300;
+  letter-spacing: 0.08em;
+  color: rgba(246, 241, 230, 0.92);
+  margin-bottom: 28px;
+}
+
+.gallery-flowchart {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px 12px;
+  position: relative;
+}
+
+.gallery-flowchart::before {
+  content: "";
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  top: 44%;
+  height: 1px;
+  background: rgba(159,199,216,.2);
+}
+
+.gallery-ending-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px 16px;
+  background: rgba(20, 24, 23, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  opacity: 0.45;
+  transition: opacity 200ms ease;
+  position: relative;
+  z-index: 1;
+}
+
+.gallery-ending-row::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: -18px;
+  width: 1px;
+  height: 18px;
+  background: rgba(159,199,216,.24);
+}
+
+.gallery-ending-row:nth-child(-n+2)::before { display: none; }
+
+.gallery-replay {
+  margin-top: 8px;
+  border: 0;
+  background: transparent;
+  color: rgba(159,199,216,.9);
+  font: 12px/1.2 system-ui, sans-serif;
+  cursor: pointer;
+  text-align: left;
+}
+
+.gallery-scene-replay {
+  margin-top: 30px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.gallery-scene-replay h3 {
+  width: 100%;
+  color: rgba(246,241,230,.82);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.gallery-scene-replay button {
+  padding: 7px 10px;
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 5px;
+  background: rgba(24,29,28,.75);
+  color: rgba(246,241,230,.8);
+  font: 12px/1.3 system-ui, sans-serif;
+  cursor: pointer;
+}
+
+.gallery-ending-row.is-unlocked {
+  opacity: 1;
+  border-color: rgba(255, 255, 255, 0.11);
+}
+
+.gallery-ending-num {
+  font-size: 13px;
+  color: rgba(159, 199, 216, 0.7);
+  font-weight: 600;
+  min-width: 18px;
+  padding-top: 2px;
+  flex-shrink: 0;
+}
+
+.gallery-ending-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.gallery-ending-info strong {
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(246, 241, 230, 0.92);
+}
+
+.gallery-ending-hint {
+  font-size: 12px;
+  color: rgba(180, 175, 165, 0.6);
+  font-style: italic;
+}
+
+/* ── Games panel ────────────────────────────────────── */
+
+#games-panel {
+  position: absolute;
+  inset: 0;
+  background: rgba(10, 12, 12, 0.96);
+  z-index: 750;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 40px 24px 32px;
+  overflow-y: auto;
+}
+
+#games-panel.is-open { display: flex; }
+
+#games-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 30px;
+  height: 30px;
+  background: rgba(30, 35, 34, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 50%;
+  color: rgba(248, 245, 237, 0.85);
+  font: 500 18px/1 system-ui, sans-serif;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 150ms ease;
+}
+
+#games-close:hover { background: rgba(45, 52, 50, 0.95); }
+
+#games-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.games-entry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 14px 16px;
+  background: rgba(20, 24, 23, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+}
+
+.games-entry-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.games-entry-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(246, 241, 230, 0.92);
+}
+
+.games-entry-desc {
+  font-size: 12px;
+  color: rgba(180, 175, 165, 0.6);
+  font-style: italic;
+}
+
+.games-entry-btn {
+  flex-shrink: 0;
+  padding: 7px 16px;
+  background: rgba(30, 35, 34, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  color: rgba(248, 245, 237, 0.85);
+  font: 500 13px/1 system-ui, sans-serif;
+  cursor: pointer;
+  transition: background 150ms ease;
+}
+
+.games-entry-btn:hover { background: rgba(45, 52, 50, 0.95); }
+
+/* ── Ending screen ────────────────────────────────── */
+/* No rules previously existed for #ending-screen/.ending-*; the panel
+   rendered with unstyled browser block defaults, which is why long
+   endings (e.g. Welcome Home Again) overflowed past the darkened
+   backdrop into the raw scene background instead of scrolling inside
+   the panel. */
+
+.ending-screen {
+  position: absolute;
+  inset: 0;
+  z-index: 950;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(8, 10, 10, 0.94);
+  padding: 6vh 5vw;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.ending-screen.is-active { display: flex; }
+
+/* .ending-inner scrolls as a single unit. #ending-screen is nested
+   inside #scene-viewport (same as every other panel in the game), so
+   at extreme aspect ratios the whole panel — including the action
+   bar — can be taller than the letterboxed viewport; a single scroll
+   region keeps "Return to last choice" etc. reachable by scrolling
+   instead of hard-clipping them off-screen. (A sticky action bar was
+   tried first but floated over unscrolled body text — removed.) */
+.ending-inner {
+  max-width: 620px;
+  width: 100%;
+  max-height: 100%;
+  overflow-y: auto;
+  box-sizing: border-box;
+  padding: 4px 4px 8px;
+}
+
+.ending-kicker {
+  margin: 0 0 10px;
+  font-size: 11px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  text-align: center;
+  color: rgba(159, 199, 216, 0.8);
+}
+
+.ending-title {
+  margin: 0 0 22px;
+  font-size: clamp(22px, 3.4vw, 34px);
+  font-weight: 300;
+  letter-spacing: 0.04em;
+  text-align: center;
+  color: rgba(246, 241, 230, 0.95);
+}
+
+.ending-body {
+  margin: 0 0 26px;
+  color: rgba(230, 226, 216, 0.88);
+  font-size: clamp(14px, 1.3vw, 16px);
+  line-height: 1.85;
+  white-space: pre-line;
+  text-align: left;
+}
+
+.ending-closing {
+  margin: 22px 0 0;
+  color: rgba(159, 199, 216, 0.85);
+  font-size: 13px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: pre-line;
+  text-align: center;
+}
+
+.ending-actions {
+  flex: 0 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  padding-top: 18px;
+}
+
+.ending-actions button {
+  padding: 10px 18px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  background: rgba(30, 35, 34, 0.85);
+  color: rgba(248, 245, 237, 0.9);
+  font: 500 13px/1 system-ui, sans-serif;
+  cursor: pointer;
+  transition: background 150ms ease;
+}
+
+.ending-actions button:hover { background: rgba(45, 52, 50, 0.95); }
+.ending-actions button:focus-visible { outline: 2px solid rgba(159, 199, 216, 0.7); outline-offset: 2px; }
+
+@media (max-width: 640px) {
+  .ending-screen { padding: 4vh 5vw; }
+  .ending-actions { flex-direction: column; }
+  .ending-actions button { width: 100%; }
+}
+
+/* ── Good-ending color restoration (§8.3) ──────────── */
+
+.good-ending-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 850;
+}
+
+.good-ending-flash {
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 220, 140, 0.12);
+  opacity: 0;
+  transition: opacity 1200ms ease;
+}
+
+.scene.is-color-draining .color-layer { opacity: 0; transition: opacity 1800ms ease; }
+.scene.is-color-draining .scene-layer.bg { filter: grayscale(1) contrast(.88) brightness(.62); transition: filter 1800ms ease; }
+
+@media (prefers-reduced-motion: reduce) {
+  .good-ending-flash { transition: none; }
+  .threshold-cat { transition: opacity 150ms ease; transform: translate(195px,5px) scale(.95); }
+}
+
+@media (max-width: 1100px) {
+  .gallery-flowchart { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

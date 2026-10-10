@@ -1,0 +1,57 @@
+/* Integration layer only. The protected legacy game styles remain the source
+   of truth; these rules place their overlays above the cinematic viewport. */
+.legacy-game-host {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  pointer-events: none;
+  width: 100vw;
+  height: 100dvh;
+  overflow: visible;
+}
+
+.legacy-game-host > .card-game-overlay,
+.legacy-game-host > .m3-overlay {
+  pointer-events: auto;
+}
+
+/* The protected overlay remains unchanged; the integration host gives it a
+   true viewport-sized containing block on desktop and portrait mobile. */
+.legacy-game-host > .card-game-overlay {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+}
+
+@media (max-width: 760px) {
+  .legacy-game-host > .card-game-overlay {
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .legacy-game-host > .card-game-overlay > .card-game-table {
+    min-height: calc(100dvh - 44px);
+  }
+}
+
+#minigameOverlay {
+  z-index: 1300;
+}
+
+.m3-overlay {
+  z-index: 40;
+}
+
+body.is-legacy-game-open #game-menu-btn,
+body.is-legacy-game-open #game-menu-panel,
+body.is-legacy-game-open #room-guidance,
+body.is-legacy-game-open #context-label {
+  visibility: hidden;
+}
+
+@media (max-width: 700px) {
+  #minigameOverlay { padding: 8px; }
+  .mg-wrapper { max-height: calc(100dvh - 16px); border-radius: 14px; }
+}

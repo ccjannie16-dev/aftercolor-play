@@ -1,0 +1,871 @@
+.card-game-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 32;
+  overflow: hidden;
+  background: #111719;
+  color: #fff4d3;
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+.card-game-cg-stage,
+.card-game-cg-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.card-game-cg-stage {
+  z-index: 0;
+  overflow: hidden;
+  background: #101719;
+}
+
+.card-game-cg-layer {
+  object-fit: cover;
+  object-position: center;
+  opacity: 0;
+  transition: opacity 220ms ease;
+}
+
+.card-game-cg-layer.is-active {
+  opacity: 1;
+}
+
+.card-game-overlay::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(4, 8, 10, 0.48) 0, transparent 18%, transparent 70%, rgba(4, 8, 10, 0.3) 100%);
+}
+
+.card-game-header {
+  position: relative;
+  z-index: 12;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 14px 4px 20px;
+  background: linear-gradient(180deg, rgba(8, 13, 15, 0.7), transparent);
+}
+
+.card-game-header h2 {
+  margin: 0;
+  color: rgba(255, 244, 211, 0.9);
+  font-size: 1rem;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  text-shadow: 0 2px 8px #000;
+}
+
+.card-game-close,
+.card-game-rules-btn,
+.card-game-instructions-close,
+.card-game-instructions-done,
+.card-game-result-btn,
+.card-game-suit-btn,
+.card-game-speech-bubble,
+.cg-playing-card,
+.card-game-draw-pile {
+  min-width: 44px;
+  min-height: 44px;
+}
+
+.card-game-close {
+  width: 44px;
+  height: 44px;
+  border: 1px solid rgba(255, 244, 211, 0.32);
+  border-radius: 999px;
+  background: rgba(10, 15, 17, 0.66);
+  color: #fff4d3;
+  font-size: 1.35rem;
+  cursor: pointer;
+}
+
+.card-game-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card-game-rules-btn {
+  min-width: 72px;
+  height: 44px;
+  padding: 0 16px;
+  border: 1px solid rgba(255, 244, 211, 0.32);
+  border-radius: 999px;
+  background: rgba(10, 15, 17, 0.66);
+  color: #fff4d3;
+  font: 700 0.78rem Georgia, "Times New Roman", serif;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+}
+
+.card-game-close:hover,
+.card-game-close:focus-visible,
+.card-game-rules-btn:hover,
+.card-game-rules-btn:focus-visible {
+  background: rgba(255, 244, 211, 0.2);
+}
+
+.card-game-table {
+  position: absolute;
+  inset: 52px 0 0;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.card-game-table > * {
+  pointer-events: auto;
+}
+
+.card-game-turn-label {
+  position: absolute;
+  top: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  min-width: 116px;
+  min-height: 28px;
+  padding: 5px 14px;
+  border: 1px solid rgba(255, 244, 211, 0.24);
+  border-radius: 999px;
+  background: rgba(8, 13, 15, 0.66);
+  color: #fff4d3;
+  font-size: 0.76rem;
+  text-align: center;
+  text-shadow: 0 1px 4px #000;
+}
+
+.card-game-opponents {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.card-game-opponent {
+  position: absolute;
+  top: 43%;
+  min-width: 100px;
+  padding: 6px 12px;
+  border: 1px solid rgba(255, 244, 211, 0.2);
+  border-radius: 12px;
+  background: rgba(8, 13, 15, 0.64);
+  box-shadow: 0 3px 14px rgba(0, 0, 0, 0.28);
+  text-align: center;
+  transition: background 200ms, box-shadow 200ms;
+}
+
+.card-game-opponent:first-child {
+  left: 18%;
+}
+
+.card-game-opponent:last-child {
+  right: 18%;
+}
+
+.card-game-opponent.is-active {
+  background: rgba(107, 73, 31, 0.84);
+  box-shadow: 0 0 16px rgba(255, 210, 118, 0.38);
+}
+
+.card-game-opponent-name,
+.card-game-opponent-cards {
+  display: block;
+}
+
+.card-game-opponent-name {
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.card-game-opponent-cards {
+  margin-top: 2px;
+  color: rgba(255, 244, 211, 0.72);
+  font-size: 0.7rem;
+}
+
+.card-game-center {
+  position: absolute;
+  top: 48%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 244, 211, 0.18);
+  border-radius: 16px;
+  background: rgba(18, 20, 18, 0.62);
+  box-shadow: 0 5px 18px rgba(0, 0, 0, 0.3);
+}
+
+.card-game-draw-pile,
+.card-game-discard {
+  width: 58px;
+  height: 80px;
+  border-radius: 7px;
+}
+
+.card-game-draw-pile {
+  border: 2px solid rgba(255, 244, 211, 0.36);
+  background:
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.07) 0 3px, transparent 3px 7px),
+    #3e5360;
+  color: #fff4d3;
+  font: inherit;
+  font-size: 0.72rem;
+  display: grid;
+  place-items: center;
+}
+
+.card-game-draw-pile-visual {
+  cursor: default;
+  pointer-events: none;
+}
+
+.card-game-discard {
+  position: relative;
+  display: grid;
+  place-items: center;
+  border: 2px solid rgba(255, 244, 211, 0.2);
+  background: rgba(255, 244, 211, 0.07);
+}
+
+.card-game-discard .cg-playing-card {
+  position: absolute;
+}
+
+.card-game-suit-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: rgba(8, 13, 15, 0.76);
+  color: #fff4d3;
+  font-size: 0.76rem;
+  white-space: nowrap;
+}
+
+.card-game-suit-indicator .suit-symbol {
+  font-size: 1.08rem;
+}
+
+.card-game-hand {
+  position: absolute;
+  right: 8%;
+  bottom: 1.5%;
+  left: 8%;
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-end;
+  justify-content: center;
+  gap: 4px;
+  max-height: 172px;
+  padding: 8px 12px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.cg-playing-card {
+  width: 56px;
+  height: 78px;
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid rgba(77, 60, 43, 0.52);
+  border-radius: 7px;
+  background: #fffaf0;
+  color: #252525;
+  font: 700 0.85rem/1 Georgia, "Times New Roman", serif;
+  cursor: pointer;
+  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+  user-select: none;
+}
+
+.cg-playing-card .card-rank {
+  font-size: 1rem;
+}
+
+.cg-playing-card .card-suit {
+  margin-top: 3px;
+  font-size: 0.92rem;
+}
+
+.cg-playing-card.is-red {
+  color: #ae3030;
+}
+
+.cg-playing-card.is-playable {
+  border-color: #f2cf76;
+  box-shadow: 0 0 7px rgba(242, 207, 118, 0.46);
+}
+
+.cg-playing-card.is-playable:hover,
+.cg-playing-card.is-playable:focus-visible {
+  transform: translateY(-7px);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.34);
+}
+
+.cg-playing-card.is-selected {
+  border-color: #6fd4ff;
+  box-shadow: 0 0 12px rgba(111, 212, 255, 0.6), 0 0 4px rgba(111, 212, 255, 0.3);
+  transform: translateY(-10px);
+}
+
+.cg-playing-card.is-selected:hover,
+.cg-playing-card.is-selected:focus-visible {
+  box-shadow: 0 0 16px rgba(111, 212, 255, 0.7), 0 8px 18px rgba(0, 0, 0, 0.34);
+}
+
+.cg-playing-card.is-illegal,
+.cg-playing-card:disabled {
+  opacity: 0.58;
+  cursor: not-allowed;
+}
+
+.card-game-actions {
+  position: absolute;
+  right: 8%;
+  bottom: calc(1.5% + 180px);
+  left: 8%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  z-index: 6;
+}
+
+.card-game-action-btn {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 8px 18px;
+  border: 1px solid rgba(255, 244, 211, 0.36);
+  border-radius: 999px;
+  background: rgba(10, 15, 17, 0.76);
+  color: #fff4d3;
+  font: 700 0.82rem Georgia, "Times New Roman", serif;
+  cursor: pointer;
+  transition: background 140ms ease, transform 140ms ease, opacity 140ms ease;
+}
+
+.card-game-action-btn:hover:not(:disabled),
+.card-game-action-btn:focus-visible:not(:disabled) {
+  background: rgba(239, 195, 105, 0.28);
+  transform: translateY(-1px);
+}
+
+.card-game-action-btn.is-disabled {
+  opacity: 0.38;
+  cursor: not-allowed;
+}
+
+.card-game-confirm-btn:not(.is-disabled) {
+  border-color: rgba(111, 212, 255, 0.5);
+  background: rgba(50, 120, 160, 0.4);
+}
+
+.card-game-pass-btn:not(.is-disabled) {
+  border-color: rgba(255, 180, 100, 0.5);
+  background: rgba(140, 90, 30, 0.4);
+}
+
+.card-game-draw-btn:not(.is-disabled) {
+  border-color: rgba(120, 200, 140, 0.5);
+  background: rgba(50, 130, 80, 0.4);
+}
+
+.card-game-illegal-feedback {
+  position: absolute;
+  bottom: calc(1.5% + 260px);
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: min(380px, 80vw);
+  padding: 8px 16px;
+  border: 1px solid rgba(220, 120, 100, 0.5);
+  border-radius: 10px;
+  background: rgba(140, 50, 40, 0.85);
+  color: #ffeedd;
+  font-size: 0.8rem;
+  line-height: 1.35;
+  text-align: center;
+  z-index: 8;
+  animation: cardGameFeedbackIn 200ms ease both;
+}
+
+@keyframes cardGameFeedbackIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(4px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+.card-game-suit-cancel {
+  display: block;
+  margin: 14px auto 0;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 8px 20px;
+  border: 1px solid rgba(255, 244, 211, 0.24);
+  border-radius: 999px;
+  background: rgba(255, 244, 211, 0.06);
+  color: rgba(255, 244, 211, 0.7);
+  font: inherit;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.card-game-suit-cancel:hover,
+.card-game-suit-cancel:focus-visible {
+  background: rgba(255, 244, 211, 0.14);
+  color: #fff4d3;
+}
+
+.card-game-speech-bubble {
+  position: absolute;
+  z-index: 15;
+  top: 10%;
+  width: min(300px, 34vw);
+  padding: 10px 14px;
+  border: 1px solid rgba(91, 69, 45, 0.48);
+  border-radius: 16px;
+  background: rgba(255, 250, 232, 0.95);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.34);
+  color: #33291f;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(6px);
+  pointer-events: none;
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.card-game-speech-bubble::after {
+  content: "";
+  position: absolute;
+  bottom: -9px;
+  width: 16px;
+  height: 16px;
+  background: rgba(255, 250, 232, 0.95);
+  transform: rotate(45deg);
+}
+
+.card-game-speech-bubble.is-abby {
+  left: 22%;
+}
+
+.card-game-speech-bubble.is-abby::after {
+  left: 25%;
+}
+
+.card-game-speech-bubble.is-bibo {
+  right: 18%;
+}
+
+.card-game-speech-bubble.is-bibo::after {
+  right: 25%;
+}
+
+.card-game-speech-bubble.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.card-game-bubble-speaker,
+.card-game-bubble-text {
+  display: block;
+}
+
+.card-game-bubble-speaker {
+  margin-bottom: 3px;
+  color: #8a5d2d;
+  font-size: 0.66rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.card-game-bubble-text {
+  font-size: 0.84rem;
+  line-height: 1.3;
+}
+
+.card-game-suit-picker,
+.card-game-result,
+.card-game-instructions {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(5, 9, 11, 0.72);
+}
+
+.card-game-instructions {
+  z-index: 45;
+  overflow: auto;
+}
+
+.card-game-suit-picker-inner,
+.card-game-result-inner,
+.card-game-instructions-inner {
+  width: min(420px, 92vw);
+  padding: 22px;
+  border: 1px solid rgba(255, 244, 211, 0.28);
+  border-radius: 18px;
+  background: rgba(38, 35, 29, 0.97);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.42);
+  color: #fff4d3;
+  text-align: center;
+}
+
+.card-game-suit-picker-inner h3,
+.card-game-result-inner h3 {
+  margin: 0 0 12px;
+  font-size: 1.12rem;
+  font-weight: 400;
+}
+
+.card-game-suit-picker-options,
+.card-game-result-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
+.card-game-suit-btn {
+  min-width: 68px;
+  padding: 8px 12px;
+  border: 1px solid rgba(255, 244, 211, 0.28);
+  border-radius: 10px;
+  background: rgba(255, 244, 211, 0.08);
+  color: #fff4d3;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.card-game-suit-btn .suit-name {
+  display: block;
+  font: 0.66rem Georgia, "Times New Roman", serif;
+}
+
+.card-game-result-inner p {
+  margin: 0 0 20px;
+  color: rgba(255, 244, 211, 0.76);
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
+.card-game-result-btn {
+  min-width: 124px;
+  padding: 9px 16px;
+  border: 1px solid rgba(255, 244, 211, 0.3);
+  border-radius: 999px;
+  background: rgba(255, 244, 211, 0.1);
+  color: #fff4d3;
+  font: 700 0.88rem Georgia, "Times New Roman", serif;
+  cursor: pointer;
+}
+
+.card-game-suit-btn:hover,
+.card-game-suit-btn:focus-visible,
+.card-game-result-btn:hover,
+.card-game-result-btn:focus-visible {
+  background: rgba(239, 195, 105, 0.22);
+}
+
+.card-game-instructions-inner {
+  width: min(620px, 92vw);
+  max-height: min(760px, calc(100vh - 40px));
+  overflow: auto;
+  text-align: left;
+}
+
+.card-game-instructions-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.card-game-instructions-heading h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 400;
+}
+
+.card-game-instructions-close {
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid rgba(255, 244, 211, 0.3);
+  border-radius: 999px;
+  background: rgba(255, 244, 211, 0.08);
+  color: #fff4d3;
+  font-size: 1.3rem;
+  cursor: pointer;
+}
+
+.card-game-instructions-intro {
+  margin: 0 0 14px;
+  color: #efc369;
+  font-size: 1rem;
+  line-height: 1.45;
+}
+
+.card-game-rules-list {
+  display: grid;
+  gap: 9px;
+  margin: 0;
+  padding-left: 1.5rem;
+  color: rgba(255, 244, 211, 0.9);
+  font-size: 0.86rem;
+  line-height: 1.45;
+}
+
+.card-game-rules-list li::marker {
+  color: #efc369;
+  font-weight: 700;
+}
+
+.card-game-instructions-note {
+  margin: 16px 0;
+  padding: 10px 12px;
+  border-left: 3px solid rgba(239, 195, 105, 0.72);
+  background: rgba(255, 244, 211, 0.06);
+  color: rgba(255, 244, 211, 0.76);
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+.card-game-instructions-done {
+  display: block;
+  min-width: 180px;
+  min-height: 44px;
+  margin: 0 auto;
+  padding: 9px 18px;
+  border: 1px solid rgba(255, 244, 211, 0.3);
+  border-radius: 999px;
+  background: rgba(239, 195, 105, 0.16);
+  color: #fff4d3;
+  font: 700 0.84rem Georgia, "Times New Roman", serif;
+  cursor: pointer;
+}
+
+.card-game-instructions-close:hover,
+.card-game-instructions-close:focus-visible,
+.card-game-instructions-done:hover,
+.card-game-instructions-done:focus-visible {
+  background: rgba(239, 195, 105, 0.26);
+  outline: 2px solid rgba(239, 195, 105, 0.52);
+  outline-offset: 2px;
+}
+
+@media (max-width: 760px) {
+  .card-game-cg-stage {
+    top: 44px;
+    bottom: auto;
+    height: min(56.25vw, 238px);
+  }
+
+  .card-game-cg-layer {
+    object-fit: contain;
+    object-position: center top;
+  }
+
+  .card-game-overlay::after {
+    background: linear-gradient(180deg, rgba(4, 8, 10, 0.26), transparent 210px, rgba(4, 8, 10, 0.38) 300px);
+  }
+
+  .card-game-header {
+    height: 44px;
+    padding: 0 8px 0 12px;
+    background: #111719;
+  }
+
+  .card-game-header h2 {
+    font-size: 0.88rem;
+  }
+
+  .card-game-header-actions {
+    gap: 5px;
+  }
+
+  .card-game-rules-btn {
+    min-width: 64px;
+    padding-inline: 12px;
+    font-size: 0.72rem;
+  }
+
+  .card-game-instructions {
+    align-items: flex-start;
+    padding: 10px;
+  }
+
+  .card-game-instructions-inner {
+    width: 100%;
+    max-height: calc(100vh - 20px);
+    padding: 16px;
+  }
+
+  .card-game-rules-list {
+    gap: 7px;
+    font-size: 0.8rem;
+  }
+
+  .card-game-table {
+    inset: 44px 0 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .card-game-turn-label {
+    position: relative;
+    top: auto;
+    left: auto;
+    transform: none;
+    margin-top: calc(min(56.25vw, 238px) + 4px);
+    flex-shrink: 0;
+  }
+
+  .card-game-opponent {
+    top: min(46vw, 196px);
+    min-width: 76px;
+    padding: 4px 7px;
+  }
+
+  .card-game-opponent:first-child {
+    left: 7%;
+  }
+
+  .card-game-opponent:last-child {
+    right: 7%;
+  }
+
+  .card-game-opponent-name {
+    font-size: 0.7rem;
+  }
+
+  .card-game-opponent-cards {
+    font-size: 0.62rem;
+  }
+
+  .card-game-center {
+    position: relative;
+    top: auto;
+    left: auto;
+    transform: none;
+    margin-top: 8px;
+    flex-shrink: 0;
+    gap: 8px;
+    padding: 8px;
+  }
+
+  .card-game-draw-pile,
+  .card-game-discard {
+    width: 48px;
+    height: 66px;
+  }
+
+  .card-game-suit-indicator {
+    padding: 3px 8px;
+    font-size: 0.68rem;
+  }
+
+  .card-game-actions {
+    position: relative;
+    right: auto;
+    bottom: auto;
+    left: auto;
+    margin-top: 6px;
+    flex-shrink: 0;
+  }
+
+  .card-game-action-btn {
+    padding: 6px 14px;
+    font-size: 0.76rem;
+  }
+
+  .card-game-illegal-feedback {
+    position: relative;
+    bottom: auto;
+    left: auto;
+    transform: none;
+    margin-top: 4px;
+    flex-shrink: 0;
+    animation: cardGameFeedbackInMobile 200ms ease both;
+  }
+
+  @keyframes cardGameFeedbackInMobile {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .card-game-hand {
+    position: relative;
+    right: auto;
+    bottom: auto;
+    left: auto;
+    width: 94%;
+    margin-top: 8px;
+    margin-bottom: 6px;
+    align-content: flex-start;
+    gap: 3px;
+    max-height: 240px;
+    padding: 8px 4px;
+    flex-shrink: 0;
+  }
+
+  .cg-playing-card {
+    width: 46px;
+    height: 64px;
+  }
+
+  .card-game-speech-bubble {
+    top: 54px;
+    width: 43vw;
+    max-width: 168px;
+    padding: 7px 9px;
+  }
+
+  .card-game-speech-bubble.is-abby {
+    left: 2%;
+  }
+
+  .card-game-speech-bubble.is-bibo {
+    right: 2%;
+  }
+
+  .card-game-bubble-text {
+    font-size: 0.69rem;
+  }
+}
+
+@media (max-width: 420px) and (max-height: 700px) {
+  .card-game-hand {
+    max-height: 190px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-game-cg-layer,
+  .card-game-speech-bubble,
+  .cg-playing-card,
+  .card-game-draw-pile {
+    transition: none;
+  }
+}
